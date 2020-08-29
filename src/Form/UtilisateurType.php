@@ -30,7 +30,7 @@ class UtilisateurType extends AbstractType
             ->add('phone')
             ->add('email', EmailType::class)
             ->add('password', PasswordType::class)
-            ->add('image', FileType::class)
+            ->add('file', FileType::class)
         ;
     }
 
@@ -38,6 +38,7 @@ class UtilisateurType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Utilisateur::class,
+            'csrf_protection'=> false
         ]);
     }
 }

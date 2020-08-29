@@ -5,63 +5,67 @@ namespace App\Controller;
 use App\Entity\Utilisateur;
 use App\Form\UtilisateurType;
 use App\Repository\UtilisateurRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use FOS\RestBundle\Controller\Annotations as Rest;
+use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 
 /**
- * @Route("/api/user")
+ * @Route("/api", name="user_api_")
  */
-class UtilisateurController extends AbstractController
+class UtilisateurController extends AbstractFOSRestController
 {
     /**
-     * @Route("/", name="user_index", methods={"GET"})
+     * @Rest\Get("/users")
      */
     public function index(UtilisateurRepository $utilisateurRepository): Response
     {
         $users = $utilisateurRepository->findAll();
-        return $this->handleV
         return $this->render('utilisateur/index.html.twig', [
-            'utilisateurs' => $utilisateurRepository->findAll(),
+            'utilisateurs' => $users,
         ]);
+
     }
 
     /**
-     * @Route("/new", name="utilisateur_new", methods={"GET","POST"})
+     * @Rest\Post("/user")
      */
     public function new(Request $request): Response
     {
         $utilisateur = new Utilisateur();
         $form = $this->createForm(UtilisateurType::class, $utilisateur);
-        $form->handleRequest($request);
+        $data = json_decode($request->getContent(), true);
+        $form->submit($data);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($utilisateur);
             $entityManager->flush();
 
-            return $this->redirectToRoute('utilisateur_index');
+            return $this->handleView($this->view(['status' => 'ok'], Response::HTTP_CREATED));
         }
 
-        return $this->render('utilisateur/new.html.twig', [
-            'utilisateur' => $utilisateur,
-            'form' => $form->createView(),
-        ]);
+        return $this->handleView($this->view($form->getErrors(), Response::HTTP_BAD_REQUEST));
     }
 
     /**
-     * @Route("/{id}", name="utilisateur_show", methods={"GET"})
+     * @Rest\Get("/user/{id}")
+     * @param Utilisateur $utilisateur
+     * @return Response
      */
-    public function show(Utilisateur $utilisateur): Response
+    public function show(UtilisateurRepository $utilisateurRepo, $id): Response
     {
+        $utilisateur = $utilisateurRepo->findOneBy([
+            'id' => $id
+        ]);
         return $this->render('utilisateur/show.html.twig', [
             'utilisateur' => $utilisateur,
         ]);
     }
 
     /**
-     * @Route("/{id}/edit", name="utilisateur_edit", methods={"GET","POST"})
+     * @Rest\Put("/user/{id}")
      */
     public function edit(Request $request, Utilisateur $utilisateur): Response
     {
@@ -71,7 +75,7 @@ class UtilisateurController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->getDoctrine()->getManager()->flush();
 
-            return $this->redirectToRoute('utilisateur_index');
+            return $this->redirectToRoute('user_api_app_utilisateur_index');
         }
 
         return $this->render('utilisateur/edit.html.twig', [
@@ -81,16 +85,20 @@ class UtilisateurController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="utilisateur_delete", methods={"DELETE"})
+     * @Rest\Delete("/user/{id}")
      */
-    public function delete(Request $request, Utilisateur $utilisateur): Response
+    public function delete(Request $request, $id): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$utilisateur->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete'.$id, $request->request->get('_token'))) {
             $entityManager = $this->getDoctrine()->getManager();
+            $utilisateur = $entityManager->getRepository(Utilisateur::class)
+                            ->findOneBy([
+                                'id' => $id
+                            ]);
             $entityManager->remove($utilisateur);
             $entityManager->flush();
         }
 
-        return $this->redirectToRoute('utilisateur_index');
+        return $this->redirectToRoute('USER_API_APP_UTILISATEUR_INDEX');
     }
 }
