@@ -5,11 +5,13 @@ namespace App\Controller;
 use App\Entity\Utilisateur;
 use App\Form\UtilisateurType;
 use App\Repository\UtilisateurRepository;
+use App\Service\FileUploader;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 /**
  * @Route("/api", name="user_api_")
@@ -17,33 +19,62 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 class UtilisateurController extends AbstractFOSRestController
 {
     /**
+     * @Route("/", name="dashbord", defaults={"reactRouting": null})
+     */
+    public function dashbord()
+    {
+        return $this->render('base.html.twig');
+    }
+
+    /**
      * @Rest\Get("/users")
      */
     public function index(UtilisateurRepository $utilisateurRepository): Response
     {
         $users = $utilisateurRepository->findAll();
-        return $this->render('utilisateur/index.html.twig', [
-            'utilisateurs' => $users,
-        ]);
+        return $this->handleView($this->view($users));
 
     }
 
     /**
      * @Rest\Post("/user")
+     * @param Request $request
+     * @param FileUploader $fileUploader
+     * @param UserPasswordEncoderInterface $passwordEncoder
+     * @return Response
      */
-    public function new(Request $request): Response
+    public function new(Request $request, FileUploader $fileUploader, UserPasswordEncoderInterface $passwordEncoder): Response
     {
         $utilisateur = new Utilisateur();
         $form = $this->createForm(UtilisateurType::class, $utilisateur);
         $data = json_decode($request->getContent(), true);
+        $imgFile = $request->request->get('image');
+        $password = json_decode($request->request->get('password'));
+
         $form->submit($data);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($utilisateur);
-            $entityManager->flush();
+                if ($imgFile)
+                {
+                    //return $this->handleView($this->view($imgFile));
+                    $imgName = $fileUploader->upload($imgFile);
+                    $utilisateur->setImage($imgName);
+                }
 
-            return $this->handleView($this->view(['status' => 'ok'], Response::HTTP_CREATED));
+                if ($password)
+                {
+                    $encoded = $passwordEncoder->encodePassword(
+                        $utilisateur,
+                        $password
+                    );
+                    $utilisateur->setPassword($encoded);
+                }
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($utilisateur);
+                $entityManager->flush();
+
+                return $this->handleview($this->view(['status' => 'ok'], Response::HTTP_CREATED));
         }
 
         return $this->handleView($this->view($form->getErrors(), Response::HTTP_BAD_REQUEST));

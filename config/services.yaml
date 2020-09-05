@@ -4,6 +4,8 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
+    images_directory : '%kernel.project_dir%/public/uploads/userImg'
+    base_url: "http://127.0.0.1:8000"
 
 services:
     # default configuration for services in *this* file
@@ -29,3 +31,8 @@ services:
     # please note that last definitions always *replace* previous ones
     sensio_framework_extra.view.listener:
         alias: listener:alias:Sensio\Bundle\FrameworkExtraBundle\EventListener\TemplateListener
+
+    App\Service\FileUploader:
+        arguments:
+            $targetDirectory: '%images_directory%'
+            $baseUrl: '%base_url%'
