@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\ColisProductsRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass=ColisProductsRepository::class)
@@ -19,6 +20,7 @@ class ColisProducts
 
     /**
      * @ORM\Column(type="string", length=100, nullable=true)
+     * @Groups({"colis_details"})
      */
     private $quantity;
 
@@ -31,6 +33,7 @@ class ColisProducts
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Produit", cascade={"persist"})
      * @ORM\JoinColumn(nullable=false)
+     * @Groups({"colis_details"})
      */
     private $product;
 

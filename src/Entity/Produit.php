@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\ProduitRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass=ProduitRepository::class)
@@ -19,16 +20,19 @@ class Produit
 
     /**
      * @ORM\Column(type="string", length=150)
+     * @Groups({"colis_details"})
      */
     private $reference;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"colis_details"})
      */
     private $libelle;
 
     /**
      * @ORM\Column(type="string", length=100)
+     * @Groups({"colis_details"})
      */
     private $prix;
 
@@ -105,5 +109,10 @@ class Produit
         $this->poids = $poids;
 
         return $this;
+    }
+
+    public function __toString(): ?string
+    {
+        return (String)$this->libelle;
     }
 }

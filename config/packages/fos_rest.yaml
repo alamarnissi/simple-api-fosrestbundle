@@ -8,6 +8,8 @@ fos_rest:
         view_response_listener:  'force'
         formats:
             json: true
+            html: true
     format_listener:
         rules:
             - { path: ^/api, prefer_extension: false, fallback_format: json, priorities: [ json, html ] }
+            - { path: ^/, priorities: [ 'html', '*/*'], fallback_format: ~, prefer_extension: true }

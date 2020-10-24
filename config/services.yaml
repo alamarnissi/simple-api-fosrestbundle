@@ -5,7 +5,7 @@
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
     images_directory : '%kernel.project_dir%/public/uploads/userImg'
-    base_url: "http://127.0.0.1:8000"
+    base_url: "https://aminux.w2csolutions.com"
 
 services:
     # default configuration for services in *this* file
@@ -36,3 +36,9 @@ services:
         arguments:
             $targetDirectory: '%images_directory%'
             $baseUrl: '%base_url%'
+
+    App\Doctrine\HashPasswordListener:
+        autowire: true
+        tags:
+            - { name: doctrine.event_subscriber }
+

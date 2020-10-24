@@ -21,7 +21,7 @@
             //$safeFilename = transliterator_transliterate('Any-Latin; Latin-ASCII; [^A-Za-z0-9_] remove; Lower()', $originalFilename);
             $fileName = uniqid().'.jpeg';
             $path = $this->getTargetDirectory().'/'.$fileName;
-            $fullPath = $this->getBaseUrl().'/'.$fileName;
+            $fullPath = $this->getBaseUrl().'/public/uploads/userImg/'.$fileName;
 
 
             try {

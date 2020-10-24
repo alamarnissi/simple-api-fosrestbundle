@@ -6,6 +6,7 @@ use App\Entity\Utilisateur;
 use App\Form\UtilisateurType;
 use App\Repository\UtilisateurRepository;
 use App\Service\FileUploader;
+use App\Utils\Reusable;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,7 +15,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 /**
- * @Route("/api", name="user_api_")
+ * @Route("/", name="user_api_")
  */
 class UtilisateurController extends AbstractFOSRestController
 {
@@ -27,13 +28,37 @@ class UtilisateurController extends AbstractFOSRestController
     }
 
     /**
+     * @Rest\Post("/login")
+     */
+    public function login(UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, Request $request): Response
+    {
+        $email = $request->request->get('email');
+        $password = $request->request->get('password');
+
+        if ($email && $password)
+        {
+            $user = $utilisateurRepository->findOneBy([
+                'email' => $email
+            ]);
+            if ($user) {
+
+                return $this->handleView($this->view(['status' => true], Response::HTTP_OK));
+
+            }else{
+                return $this->handleView($this->view(['status' => false, 'message' => 'Email is incorrect'], Response::HTTP_BAD_REQUEST));
+            }
+        }else{
+            return $this->handleView($this->view(['status' => false, 'message' => 'Please enter email and password'], Response::HTTP_BAD_REQUEST));
+        }
+    }
+
+    /**
      * @Rest\Get("/users")
      */
     public function index(UtilisateurRepository $utilisateurRepository): Response
     {
         $users = $utilisateurRepository->findAll();
         return $this->handleView($this->view($users));
-
     }
 
     /**
@@ -49,32 +74,39 @@ class UtilisateurController extends AbstractFOSRestController
         $form = $this->createForm(UtilisateurType::class, $utilisateur);
         $data = json_decode($request->getContent(), true);
         $imgFile = $request->request->get('image');
-        $password = json_decode($request->request->get('password'));
+        $role = $request->request->get('roles');
+
+        $entityManager = $this->getDoctrine()->getManager();
+
+        $checkEmail = $entityManager->getRepository(Utilisateur::class)->findOneBy(['email' => $data['email']]);
+        if (!empty($checkEmail)){
+            return $this->handleview($this->view(['status' => false, 'message' => 'This email is already taken'], Response::HTTP_BAD_REQUEST));
+        }
 
         $form->submit($data);
 
         if ($form->isSubmitted() && $form->isValid()) {
                 if ($imgFile)
                 {
-                    //return $this->handleView($this->view($imgFile));
                     $imgName = $fileUploader->upload($imgFile);
                     $utilisateur->setImage($imgName);
                 }
 
-                if ($password)
+                if ($role === array('ROLE_USER'))
                 {
-                    $encoded = $passwordEncoder->encodePassword(
-                        $utilisateur,
-                        $password
-                    );
-                    $utilisateur->setPassword($encoded);
+                    $latitude = $request->request->get('latitude');
+                    $longitude = $request->request->get('longitude');
+
+                    if (empty($latitude) || empty($longitude))
+                    {
+                        return $this->handleView($this->view(['status'=> false ,'message' => 'Veuiller fournir les coordonnés de client']));
+                    }
                 }
 
-                $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->persist($utilisateur);
                 $entityManager->flush();
 
-                return $this->handleview($this->view(['status' => 'ok'], Response::HTTP_CREATED));
+                return $this->handleview($this->view(['status' => true, 'message' => 'User added successfully'], Response::HTTP_CREATED));
         }
 
         return $this->handleView($this->view($form->getErrors(), Response::HTTP_BAD_REQUEST));
@@ -90,46 +122,62 @@ class UtilisateurController extends AbstractFOSRestController
         $utilisateur = $utilisateurRepo->findOneBy([
             'id' => $id
         ]);
-        return $this->render('utilisateur/show.html.twig', [
-            'utilisateur' => $utilisateur,
-        ]);
+        return $this->handleView($this->view($utilisateur));
+
     }
 
     /**
      * @Rest\Put("/user/{id}")
      */
-    public function edit(Request $request, Utilisateur $utilisateur): Response
+    public function edit(Request $request, $id, UtilisateurRepository $utilisateurRepo, FileUploader $fileUploader, Reusable $reusable): Response
     {
+        $utilisateur = $utilisateurRepo->findOneBy(
+            array(
+                "id" => $id
+            ));
         $form = $this->createForm(UtilisateurType::class, $utilisateur);
-        $form->handleRequest($request);
+        $data = json_decode($request->getContent(), true);
+        $imgFile = $request->request->get('image');
+
+        $form->submit($data);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
+            if ($imgFile)
+            {
+                //$currentImg = $reusable->get_string_between($utilisateur->getImage(), '/','.jpeg');
+               // $imgPath = $reusable->getConstants($this->container->getParameter('images_directory')).'/'.$currentImg;
+                $imgName = $fileUploader->upload($imgFile);
+                $utilisateur->setImage($imgName);
+            }
 
-            return $this->redirectToRoute('user_api_app_utilisateur_index');
+            $manager = $this->getDoctrine()->getManager();
+            $manager->flush();
+
+            return $this->handleview($this->view(['status' => true, 'message' => 'User details updated successfully'], Response::HTTP_CREATED));
         }
 
-        return $this->render('utilisateur/edit.html.twig', [
-            'utilisateur' => $utilisateur,
-            'form' => $form->createView(),
-        ]);
+        return $this->handleview($this->view($form->getErrors(), Response::HTTP_BAD_REQUEST));
+
     }
 
     /**
      * @Rest\Delete("/user/{id}")
      */
-    public function delete(Request $request, $id): Response
+    public function delete(Request $request, $id, UtilisateurRepository $utilisateurRepo): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$id, $request->request->get('_token'))) {
+
             $entityManager = $this->getDoctrine()->getManager();
-            $utilisateur = $entityManager->getRepository(Utilisateur::class)
-                            ->findOneBy([
+            $utilisateur = $utilisateurRepo->findOneBy(
+                            [
                                 'id' => $id
                             ]);
+
+        if ($utilisateur)
+        {
             $entityManager->remove($utilisateur);
             $entityManager->flush();
+            return $this->handleView($this->view(['status' => true, 'message' => 'User deleted successfully'], Response::HTTP_OK));
         }
-
-        return $this->redirectToRoute('USER_API_APP_UTILISATEUR_INDEX');
+            return $this->handleView($this->view(['status' => 'Bad Request'], Response::HTTP_BAD_REQUEST));
     }
 }
