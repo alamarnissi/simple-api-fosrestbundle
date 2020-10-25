@@ -19,6 +19,8 @@ class ProduitController extends AbstractFOSRestController
 {
     /**
      * @Rest\Get("/products")
+     * @param ProduitRepository $produitRepository
+     * @return Response
      */
     public function index(ProduitRepository $produitRepository): Response
     {
@@ -28,6 +30,8 @@ class ProduitController extends AbstractFOSRestController
 
     /**
      * @Rest\Post("/product")
+     * @param Request $request
+     * @return Response
      */
     public function new(Request $request): Response
     {
@@ -50,6 +54,9 @@ class ProduitController extends AbstractFOSRestController
 
     /**
      * @Rest\Get("/product/{id}")
+     * @param $id
+     * @param ProduitRepository $produitRepository
+     * @return Response
      */
     public function show($id, ProduitRepository $produitRepository): Response
     {
@@ -67,6 +74,10 @@ class ProduitController extends AbstractFOSRestController
 
     /**
      * @Rest\Put("/product/{id}")
+     * @param Request $request
+     * @param $id
+     * @param ProduitRepository $produitRepository
+     * @return Response
      */
     public function edit(Request $request, $id, ProduitRepository $produitRepository): Response
     {
@@ -95,8 +106,11 @@ class ProduitController extends AbstractFOSRestController
 
     /**
      * @Rest\Delete("/product/{id}")
+     * @param $id
+     * @param ProduitRepository $produitRepository
+     * @return Response
      */
-    public function delete(Request $request, $id, ProduitRepository $produitRepository): Response
+    public function delete($id, ProduitRepository $produitRepository): Response
     {
         $product = $produitRepository->findOneBy(array(
             "id" => $id

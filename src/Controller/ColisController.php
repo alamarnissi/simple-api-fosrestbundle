@@ -56,6 +56,10 @@ class ColisController extends AbstractFOSRestController
 
     /**
      * @Rest\Patch("/colis/incrementStatus/{id}")
+     * @param $id
+     * @param Request $request
+     * @param ColisRepository $colisRepository
+     * @return Response
      */
     public function incrementStatus($id, Request $request, ColisRepository $colisRepository){
         $colis = $colisRepository->findOneBy(['id' => $id]);
@@ -88,6 +92,9 @@ class ColisController extends AbstractFOSRestController
 
     /**
      * @Rest\Get("/colis")
+     * @param ColisRepository $colisRepository
+     * @param SerializerInterface $serializer
+     * @return Response
      */
     public function list(ColisRepository $colisRepository, SerializerInterface $serializer): Response
     {
@@ -95,8 +102,11 @@ class ColisController extends AbstractFOSRestController
         $data = $serializer->serialize($colis, 'json', ['groups' => 'colis_details']);
         return $this->handleView($this->view($data));
     }
+
     /**
      * @Rest\Post("/colis")
+     * @param Request $request
+     * @return Response
      */
     public function new(Request $request): Response
     {
@@ -145,6 +155,10 @@ class ColisController extends AbstractFOSRestController
 
     /**
      * @Rest\Get("/colis/{id}")
+     * @param $id
+     * @param ColisRepository $colisRepository
+     * @param SerializerInterface $serializer
+     * @return Response
      */
     public function show($id, ColisRepository $colisRepository, SerializerInterface $serializer): Response
     {
@@ -177,6 +191,11 @@ class ColisController extends AbstractFOSRestController
 
     /**
      * @Rest\Delete("/colis/{id}")
+     * @param Request $request
+     * @param $id
+     * @param ColisRepository $colisRepository
+     * @param ColisProductsRepository $colisProductsRepository
+     * @return Response
      */
     public function delete(Request $request, $id, ColisRepository $colisRepository, ColisProductsRepository $colisProductsRepository): Response
     {

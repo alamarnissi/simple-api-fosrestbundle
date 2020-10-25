@@ -18,6 +18,8 @@ class SortingCenterController extends AbstractFOSRestController
 {
     /**
      * @Rest\Get("/centers")
+     * @param SortingCenterRepository $sortingCenterRepository
+     * @return Response
      */
     public function index(SortingCenterRepository $sortingCenterRepository): Response
     {
@@ -28,6 +30,8 @@ class SortingCenterController extends AbstractFOSRestController
 
     /**
      * @Rest\Post("/center")
+     * @param Request $request
+     * @return Response
      */
     public function new(Request $request): Response
     {
@@ -50,6 +54,9 @@ class SortingCenterController extends AbstractFOSRestController
 
     /**
      * @Rest\Get("/center/{id}")
+     * @param $id
+     * @param SortingCenterRepository $sortingCenterRepository
+     * @return Response
      */
     public function show($id, SortingCenterRepository $sortingCenterRepository): Response
     {
@@ -68,6 +75,10 @@ class SortingCenterController extends AbstractFOSRestController
 
     /**
      * @Rest\Put("/center/{id}")
+     * @param Request $request
+     * @param $id
+     * @param SortingCenterRepository $sortingCenterRepository
+     * @return Response
      */
     public function edit(Request $request, $id, SortingCenterRepository $sortingCenterRepository): Response
     {
@@ -95,8 +106,11 @@ class SortingCenterController extends AbstractFOSRestController
 
     /**
      * @Rest\Delete("/center/{id}")
+     * @param $id
+     * @param SortingCenterRepository $sortingCenterRepository
+     * @return Response
      */
-    public function delete(Request $request, $id, SortingCenterRepository $sortingCenterRepository): Response
+    public function delete($id, SortingCenterRepository $sortingCenterRepository): Response
     {
         $center = $sortingCenterRepository->findOneBy(array(
             'id' => $id

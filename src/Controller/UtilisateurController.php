@@ -29,6 +29,10 @@ class UtilisateurController extends AbstractFOSRestController
 
     /**
      * @Rest\Post("/login")
+     * @param UtilisateurRepository $utilisateurRepository
+     * @param UserPasswordEncoderInterface $passwordEncoder
+     * @param Request $request
+     * @return Response
      */
     public function login(UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, Request $request): Response
     {
@@ -54,6 +58,8 @@ class UtilisateurController extends AbstractFOSRestController
 
     /**
      * @Rest\Get("/users")
+     * @param UtilisateurRepository $utilisateurRepository
+     * @return Response
      */
     public function index(UtilisateurRepository $utilisateurRepository): Response
     {
@@ -114,7 +120,8 @@ class UtilisateurController extends AbstractFOSRestController
 
     /**
      * @Rest\Get("/user/{id}")
-     * @param Utilisateur $utilisateur
+     * @param UtilisateurRepository $utilisateurRepo
+     * @param $id
      * @return Response
      */
     public function show(UtilisateurRepository $utilisateurRepo, $id): Response
@@ -128,6 +135,12 @@ class UtilisateurController extends AbstractFOSRestController
 
     /**
      * @Rest\Put("/user/{id}")
+     * @param Request $request
+     * @param $id
+     * @param UtilisateurRepository $utilisateurRepo
+     * @param FileUploader $fileUploader
+     * @param Reusable $reusable
+     * @return Response
      */
     public function edit(Request $request, $id, UtilisateurRepository $utilisateurRepo, FileUploader $fileUploader, Reusable $reusable): Response
     {
@@ -162,6 +175,10 @@ class UtilisateurController extends AbstractFOSRestController
 
     /**
      * @Rest\Delete("/user/{id}")
+     * @param Request $request
+     * @param $id
+     * @param UtilisateurRepository $utilisateurRepo
+     * @return Response
      */
     public function delete(Request $request, $id, UtilisateurRepository $utilisateurRepo): Response
     {
